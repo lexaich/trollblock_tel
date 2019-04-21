@@ -6,11 +6,11 @@ const rpn = require("request-promise")
 const MongoClient = require('mongodb').MongoClient
 const fs = require('fs');
 
-const BOT_TOKEN = process.argv[2];
+const BOT_TOKEN = process.env.BOT_TOKEN;
 
 var url = 'mongodb://localhost:27017/'
 
- MongoClient.connect(url,{ useNewUrlParser: true },function(err, db){
+MongoClient.connect(url,{ useNewUrlParser: true },function(err, db) {
  	if (err){
  		log(JSON.stringify(err),'root','exeption')
  		console.log(err)
@@ -34,39 +34,39 @@ bot.help((ctx) => ctx.reply(`
 
 Чтобы посмотреть лидирующее сообщение, воспользуйтесь командой /stats. 
 
-По всем вопросам обращайтесь на (tg:) @grablevski
-	`))
+По всем вопросам обращайтесь на (tg:) @grablevski`))
 
 
 
 bot.hears('/stats', (ctx) => {
+    var userName = ctx['update']['message']['from']['username']
 	// var usetMessage = ctx['update']['message']['text']
-//console.log(1234)
-dboc.find({ checked:1 }).sort( {toxic:-1} ).limit(3).toArray()
-.then(res=>{
-//console.log(res)
-//return true
-	//сортировка по токсичности
-var stats = res
+    dboc.find({ checked: 1 }).sort( {toxic:-1} ).limit(3).toArray()
+    .then(stats => {
+    	//сортировка по токсичности
+        dboc.findOne({user: userName}).sort({toxic:-1}).toArray()
+        .then(userStats => {
+            ctx.reply(`
+                Ваш лучший комментарий
+                Токсичность: ${userStats.toxic}%
+                ${userStats.message}
+                ########################################
+                Место: 1
+                Токсичность: ${stats[0].toxic}%
+                ${stats[0].message}
+                ########################################
+                Место: 2
+                Токсичность: ${stats[1].toxic}%
+                ${stats[1].message}
+                ########################################
+                Место: 3
+                Токсичность: ${stats[2].toxic}%
+                ${stats[2].message}
+                ########################################
+            `)
 
-	ctx.reply(`
-########################################
-Место: 1
-Токсичность: ${stats[0].toxic}%
-${stats[0].message}
-########################################
-Место: 2
-Токсичность: ${stats[1].toxic}%
-${stats[1].message}
-########################################
-Место: 3
-Токсичность: ${stats[2].toxic}%
-${stats[2].message}
-########################################
-		`)
-
-})
-
+        })
+    })
 
 })
 
@@ -74,13 +74,16 @@ bot.hears(/\ */, (ctx) => {
 	var userMessage = ctx['update']['message']['text']
 	get_toxic(userMessage)
 	.then(res=>{
-if(res==20.38||res==20.39){
-	ctx.reply('Это англиский текст. Пиши на русском')
-}else{
-		ctx.reply('toxic of this message is '+res+'%')
-		var out = {checked:0,userName:ctx['update']['message']['from']['username'],message:userMessage,timestamp:new Date().getTime(),toxic:res,userId:ctx['update']['message']['from']['id']}
+		ctx.reply('Степень токсичности сообщения: '+res+'%')
+		var out = {
+            checked: 0,
+            userName: ctx['update']['message']['from']['username'],
+            message: userMessage, 
+            timestamp: new Date().getTime(), 
+            toxic: res,
+            userId: ctx['update']['message']['from']['id']
+        }
 		dboc.insertOne(out).then(res=>{})
-}
 	})
 
 })
@@ -88,9 +91,7 @@ if(res==20.38||res==20.39){
 
 bot.launch()
 
-
-
- })
+})
 
 
 function get_toxic(message){
@@ -101,8 +102,8 @@ function get_toxic(message){
 		var data = {}
 		data['telegram'] = message
 		var options= {
-			method:'POST',
-			uri:API_PATH+'api', // путь до списка всех матчей
+			method: 'POST',
+			uri:API_PATH + 'api', // путь до списка всех матчей
 			body:JSON.stringify(data),
 			headers: {
 			'Content-Type': 'application/json',
