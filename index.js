@@ -49,7 +49,7 @@ bot.help((ctx) => ctx.reply(`
 bot.hears('/stats', (ctx) => {
 	// var usetMessage = ctx['update']['message']['text']
 //console.log(1234)
-dboc.find().sort( {toxic:-1} ).limit(3).toArray()
+dboc.find({ checked:1 }).sort( {toxic:-1} ).limit(3).toArray()
 .then(res=>{
 //console.log(res)
 //return true
