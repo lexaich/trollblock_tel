@@ -18,13 +18,6 @@ var url = 'mongodb://localhost:27017/'
  	};
 
  	var dboc = db.db('trollblock').collection('info')
-	dboc.insert(res,function(err,result){
-		if(err){
-			config.log(err,'trollblock')
-			console.log(err)
-		}
-		console.log(result)
-	})
 
 const bot = new Telegraf(BOT_TOKEN)
 
