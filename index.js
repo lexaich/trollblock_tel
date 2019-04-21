@@ -40,30 +40,33 @@ bot.help((ctx) => ctx.reply(`
 
 bot.hears('/stats', (ctx) => {
     var userName = ctx['update']['message']['from']['username']
-	// var usetMessage = ctx['update']['message']['text']
-    dboc.find({ checked: 1 }).sort( {toxic:-1} ).limit(3).toArray()
+    dboc.find({ checked: 1 }).sort({toxic:-1, timestamp: 1}).limit(3).toArray()
     .then(stats => {
-    	//сортировка по токсичности
-        dboc.findOne({user: userName}).sort({toxic:-1}).toArray()
+        dboc.find({userName: userName}).sort({toxic: -1}).limit(1).toArray()
         .then(userStats => {
-            ctx.reply(`
-                Ваш лучший комментарий
-                Токсичность: ${userStats.toxic}%
-                ${userStats.message}
-                ########################################
-                Место: 1
-                Токсичность: ${stats[0].toxic}%
-                ${stats[0].message}
-                ########################################
-                Место: 2
-                Токсичность: ${stats[1].toxic}%
-                ${stats[1].message}
-                ########################################
-                Место: 3
-                Токсичность: ${stats[2].toxic}%
-                ${stats[2].message}
-                ########################################
-            `)
+            var message = ""
+
+            stats.map((element, index) => {
+                message += `
+Место: ${index + 1}
+Токсичность: ${element.toxic}%
+${element.message}
+                `
+            })
+
+            if (userStats.length > 0) {
+                userStats = userStats[0]
+
+                message += `
+...
+
+Ваш лучший комментарий
+Токсичность: ${userStats.toxic}%
+${userStats.message}
+                `
+            }
+
+            ctx.reply(message)
 
         })
     })
@@ -93,6 +96,9 @@ bot.launch()
 
 })
 
+function impossiblify(coefficient) {
+    return Math.round(coefficient*10000)/100
+}
 
 function get_toxic(message){
 	return new Promise((resolve,reject)=>{
@@ -114,7 +120,8 @@ function get_toxic(message){
 		rpn( options )
 		.then(res=>{
 			var res = JSON.parse(res)
-			resolve(Math.round(res['telegram']*10000)/100)
+            var coefficient = impossiblify(res['telegram'])
+            resolve(coefficient)
 		})
 		.catch(err=>{
 			log(JSON.stringify(err),'root','exeption')
