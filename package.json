@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "node-telegram-bot-api": "^0.30.0"
+    "node-telegram-bot-api": "^0.30.0",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4",
+    "telegraf": "^3.29.0"
   },
   "devDependencies": {},
   "scripts": {
