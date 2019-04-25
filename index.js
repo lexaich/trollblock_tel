@@ -39,10 +39,10 @@ bot.help((ctx) => ctx.reply(`
 
 
 bot.hears('/stats', (ctx) => {
-    var userName = ctx['update']['message']['from']['username']
+    var userId = ctx['update']['message']['from']['id']
     dboc.find({ checked: 1 }).sort({toxic:-1, timestamp: 1}).limit(3).toArray()
     .then(stats => {
-        dboc.find({userName: userName}).sort({toxic: -1}).limit(1).toArray()
+        dboc.find({userId: userId}).sort({toxic: -1}).limit(1).toArray()
         .then(userStats => {
             var message = ""
 
