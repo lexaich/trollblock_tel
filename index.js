@@ -100,7 +100,7 @@ bot.launch()
 })
 
 function impossiblify(coefficient) {
-    return Math.round(coefficient*10000)/100
+    return Math.round(coefficient*10000)/100 - 0.1
 }
 
 function get_toxic(message){
