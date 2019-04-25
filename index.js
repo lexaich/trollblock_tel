@@ -57,7 +57,7 @@ ${element.message}
             if (userStats.length > 0) {
                 userStats = userStats[0]
                 var additionalMessage = ""
-                if (userStats["checked"] != 1) {
+                if ((userStats["checked"] != 1)  && (userStats["toxic"] > stats[stats.length - 1]["toxic"])) {
                     additionalMessage = "(находится на стадии проверки)"
                 }
                 message += `
