@@ -19,6 +19,8 @@ MongoClient.connect(url,{ useNewUrlParser: true },function(err, db) {
 
  	var dboc = db.db('trollblock').collection('info')
 
+const whiteList = ['lexaich07','noomckalb'];
+
 const bot = new Telegraf(BOT_TOKEN)
 
 bot.start((ctx) => ctx.reply('Используемые команды: /help и /stats'))
@@ -65,10 +67,9 @@ ${element.message}
 
 Ваш лучший комментарий ${additionalMessage}
 Токсичность: ${userStats.toxic}%
-${userStats.message}
-                `
-            }
-
+${userStats.message} 
+        `
+}
             ctx.reply(message)
 
         })
@@ -78,9 +79,10 @@ ${userStats.message}
 
 bot.hears(/\ */, (ctx) => {
 	var userMessage = ctx['update']['message']['text']
-	get_toxic(userMessage)
+	var userName = ctx['update']['message']['from']['username']
+	var prm1 = get_toxic(userMessage,'')
 	.then(res=>{
-		ctx.reply('Степень токсичности сообщения: '+res+'%')
+		//ctx.reply('Степень токсичности сообщения: '+res+'%')
 		var out = {
             checked: 0,
             userName: ctx['update']['message']['from']['username'],
@@ -90,6 +92,20 @@ bot.hears(/\ */, (ctx) => {
             userId: ctx['update']['message']['from']['id']
         }
 		dboc.insertOne(out).then(res=>{})
+	    return res;
+	})
+	var prm2 = get_toxic(userMessage,'admin')
+	
+	Promise.all([prm1,prm2])
+	.then(results=>{
+ctx.reply('Степень токсичности сообщения: '+results[1]+'%')
+		if(whiteList.indexOf(userName)!=-1){
+			ctx.reply(`
+Версия1: ${results[0]}%
+Версия2: ${results[1]}%
+
+`)
+		}
 	})
 
 })
@@ -103,9 +119,12 @@ function impossiblify(coefficient) {
     return Math.round(coefficient*10000)/100 - 0.1
 }
 
-function get_toxic(message){
+function get_toxic(message,flag){
 	return new Promise((resolve,reject)=>{
 		var API_PATH = "http://35.185.0.201/"
+		if(flag=='admin'){
+			var API_PATH = "http://35.242.205.243:5000/"
+		}
 		// var API_PATH = "http://localhost:5000/"
 
 		var data = {}
