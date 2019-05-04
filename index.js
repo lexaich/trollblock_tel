@@ -23,53 +23,18 @@ const whiteList = ['lexaich07', 'noomckalb', 'ivanklimuk', 'grablevski'];
 
 const bot = new Telegraf(BOT_TOKEN)
 
-bot.start((ctx) => ctx.reply('Используемые команды: /help и /stats'))
-bot.help((ctx) => ctx.reply(`
+function helpMessage(ctx) {
+ctx.reply(`
 Привет от команды TrollBlock!
 Цель проекта TrollBlock - помочь людям самовыражаться в интернете без стеснения.
 
-Сейчас TrollBlock разработал нейронную сеть, которая определяет “токсичность” - показатель грубости и агрессии в сообщении. Мы предлагаем опробовать нейронную сеть в деле. Отправьте сообщение сюда и мы покажем степень его токсичности (100% - очень токсичное сообщение!).
+Сейчас TrollBlock разработал нейронную сеть, которая определяет “токсичность” - показатель грубости и агрессии в сообщении. Мы предлагаем опробовать нейронную сеть в деле. Отправьте сообщение сюда и мы п$
 
-По всем вопросам обращайтесь на @grablevski`))
-
-
-
-bot.hears('/stats', (ctx) => {
-    var userId = ctx['update']['message']['from']['id']
-    dboc.find({ checked: 1 }).sort({toxic:-1, timestamp: 1}).limit(3).toArray()
-    .then(stats => {
-        dboc.find({userId: userId}).sort({toxic: -1}).limit(1).toArray()
-        .then(userStats => {
-            var message = ""
-
-            stats.map((element, index) => {
-                message += `
-Место: ${index + 1}
-Токсичность: ${element.toxic}%
-${element.message}
-                `
-            })
-
-            if (userStats.length > 0) {
-                userStats = userStats[0]
-                var additionalMessage = ""
-                if ((userStats["checked"] != 1)  && (userStats["toxic"] > stats[stats.length - 1]["toxic"])) {
-                    additionalMessage = "(находится на стадии проверки)"
-                }
-                message += `
-...
-
-Ваш лучший комментарий ${additionalMessage}
-Токсичность: ${userStats.toxic}%
-${userStats.message} 
-        `
+По всем вопросам обращайтесь на @grablevski`)
 }
-            ctx.reply(message)
 
-        })
-    })
-
-})
+bot.start(helpMessage)
+bot.help(helpMessage)
 
 bot.hears(/\ */, (ctx) => {
 	var userMessage = ctx['update']['message']['text']
