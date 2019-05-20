@@ -66,7 +66,7 @@ bot.hears(/\ */, (ctx) => {
 
 		var adminAnswer = ''
 		var userAnswer = `Степень токсичности сообщения: ${results[0]} %`
-		ctx.reply(userAnswerk)
+		ctx.reply(userAnswer)
 
 		if(whiteList.indexOf(userName)!=-1){
 			results.forEach((toxic,num)=>{
