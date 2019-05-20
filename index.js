@@ -66,7 +66,7 @@ bot.hears(/\ */, (ctx) => {
 
 		var adminAnswer = ''
 		var userAnswer = `Степень токсичности сообщения: ${results[0]} %`
-		ctx.reply(userAnswer)
+		ctx.reply(userAnswerk)
 
 		if(whiteList.indexOf(userName)!=-1){
 			results.forEach((toxic,num)=>{
@@ -74,6 +74,9 @@ bot.hears(/\ */, (ctx) => {
 			})
 			ctx.reply(adminAnswer)
 		}		
+	})
+	.catch(err=>{
+		log(err.stack)
 	})
 })
 
@@ -109,17 +112,18 @@ function get_toxic(message,api){
             resolve(coefficient)
 		})
 		.catch(err=>{
-			log(JSON.stringify(err),'root','exeption')
+			// log(JSON.stringify(err),'root','exeption')
 			console.log(err)
+			log(err.stack)
+			
 		})
 	})
 	
 }
 
-
-function log(mess,username,name){
+function log(mess){
     const newLineChar = process.platform === 'win32' ? '\r\n' : '\n';
     var date = new Date(); 
     var data_to_append = `${mess}`
-    fs.appendFileSync(name+'.log', `${newLineChar}${data_to_append}`);
+    fs.appendFileSync('trollblock.log', `${newLineChar}${data_to_append}`);
 }
