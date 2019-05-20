@@ -6,6 +6,7 @@ const rpn = require("request-promise")
 const MongoClient = require('mongodb').MongoClient
 const fs = require('fs');
 
+
 const BOT_TOKEN = process.env.BOT_TOKEN;
 
 var url = 'mongodb://localhost:27017/'
@@ -20,6 +21,7 @@ MongoClient.connect(url,{ useNewUrlParser: true },function(err, db) {
  	var dboc = db.db('trollblock').collection('info')
 
 const whiteList = ['lexaich07', 'noomckalb', 'ivanklimuk', 'grablevski'];
+const models = ['35.242.205.243:5000', '35.185.0.201']
 
 const bot = new Telegraf(BOT_TOKEN)
 
@@ -39,34 +41,40 @@ bot.help(helpMessage)
 bot.hears(/\ */, (ctx) => {
 	var userMessage = ctx['update']['message']['text']
 	var userName = ctx['update']['message']['from']['username']
-	var prm1 = get_toxic(userMessage,'')
-	.then(res=>{
-		//ctx.reply('Степень токсичности сообщения: '+res+'%')
-		var out = {
-            checked: 0,
-            userName: ctx['update']['message']['from']['username'],
-            message: userMessage, 
-            timestamp: new Date().getTime(), 
-            toxic: res,
-            userId: ctx['update']['message']['from']['id']
-        }
-		dboc.insertOne(out).then(res=>{})
-	    return res;
-	})
-	var prm2 = get_toxic(userMessage,'admin')
-	
-	Promise.all([prm1,prm2])
+	var userId = ctx['update']['message']['from']['id']
+
+	var queryes = [get_toxic(userMessage,models[0])]
+
+	if(whiteList.indexOf(userName)!=-1){
+		models.forEach((item,index)=>{
+			if(index==0){return true}
+			queryes.push(get_toxic(userMessage,item))
+		})
+	}
+
+	Promise.all(queryes)
 	.then(results=>{
-ctx.reply('Степень токсичности сообщения: '+results[1]+'%')
-		if(whiteList.indexOf(userName)!=-1){
-			ctx.reply(`
-Версия1: ${results[0]}%
-Версия2: ${results[1]}%
-
-`)
+		var out = {
+			checked: 0,
+			userName: userName,
+			message: userMessage, 
+			timestamp: new Date().getTime(), 
+			toxic: results[0],
+			userId: userId
 		}
-	})
+		dboc.insertOne(out)
 
+		var adminAnswer = ''
+		var userAnswer = `Степень токсичности сообщения: ${results[0]} %`
+		ctx.reply(userAnswer)
+
+		if(whiteList.indexOf(userName)!=-1){
+			results.forEach((toxic,num)=>{
+				adminAnswer += ` ${models[num]}: ${toxic} %\n`
+			})
+			ctx.reply(adminAnswer)
+		}		
+	})
 })
 
 
@@ -78,19 +86,15 @@ function impossiblify(coefficient) {
     return Math.round(coefficient*10000)/100 - 0.1
 }
 
-function get_toxic(message,flag){
+function get_toxic(message,api){
 	return new Promise((resolve,reject)=>{
-		var API_PATH = "http://35.185.0.201/"
-		if(flag=='admin'){
-			var API_PATH = "http://35.242.205.243:5000/"
-		}
-		// var API_PATH = "http://localhost:5000/"
+		var API_PATH = `http://${api}/`
 
 		var data = {}
 		data['telegram'] = message
 		var options= {
 			method: 'POST',
-			uri:API_PATH + 'api', // путь до списка всех матчей
+			uri:API_PATH + 'api',
 			body:JSON.stringify(data),
 			headers: {
 			'Content-Type': 'application/json',
